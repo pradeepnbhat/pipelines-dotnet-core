@@ -6,6 +6,7 @@ pool:
   
 variables:
   buildConfiguration: 'Release'
+  anotherVariable: 'me'
 
 steps:
 - script: |
