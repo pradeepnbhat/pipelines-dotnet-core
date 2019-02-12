@@ -1,46 +1,23 @@
-# Build ASP.NET Core project using Azure Pipelines
-# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core?view=vsts
-  
-variables:
-  buildConfiguration: 'Release'
-  anotherVariable: 'me'
-
 jobs:
-- job: a
+
+# Set an output variable from a job with slicing
+- job: A
   pool:
-    vmImage: 'Ubuntu 16.04'
+    vmImage: 'ubuntu-16.04'
+    parallel: 2 # Two slices
   steps:
-  - script: |
-      dotnet build --configuration $(buildConfiguration)
-      dotnet test dotnetcore-tests --configuration $(buildConfiguration) --logger trx
-      dotnet publish --configuration $(buildConfiguration) --output $BUILD_ARTIFACTSTAGINGDIRECTORY
+  - script: echo "##vso[task.setvariable variable=myOutputVar;isOutput=true]this is the slice $(system.jobPositionInPhase) value"
+    name: setvarStep
+  - script: echo $(setvarStep.myOutputVar)
+    name: echovar
 
-  - task: PublishTestResults@2
-    condition: succeededOrFailed()
-    inputs:
-      testRunner: VSTest
-      testResultsFiles: '**/*.trx'
-
-  - task: PublishBuildArtifacts@1
-
-  - task: PublishBuildArtifacts@1
-
-- job: b
+# Map the variable from the job for the first slice
+- job: B
+  dependsOn: A
   pool:
-    vmImage: 'Ubuntu 16.04'
+    vmImage: 'ubuntu-16.04'
+  variables:
+    myVarFromJobsA1: $[ dependencies.A.outputs['job1.setvarStep.myOutputVar'] ]
   steps:
-  - script: |
-      dotnet build --configuration $(buildConfiguration)
-      dotnet test dotnetcore-tests --configuration $(buildConfiguration) --logger trx
-      dotnet publish --configuration $(buildConfiguration) --output $BUILD_ARTIFACTSTAGINGDIRECTORY
-
-  - task: PublishTestResults@2
-    condition: succeededOrFailed()
-    inputs:
-      testRunner: VSTest
-      testResultsFiles: '**/*.trx'
-
-  - task: PublishBuildArtifacts@1
-
-  - task: PublishBuildArtifacts@1
-
+  - script: "echo $(myVarFromJobsA1)"
+    name: echovar
