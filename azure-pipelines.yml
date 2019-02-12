@@ -7,9 +7,9 @@ jobs:
     parallel: 2 # Two slices
   steps:
   - script: echo "##vso[task.setvariable variable=myOutputVar;isOutput=true]this is the slice $(system.jobPositionInPhase) value"
-  
+
   - script: echo $(setvarStep.myOutputVar)
-    name: echovar
+    displayName: "echovar $(Build.DefinitionName)"
 
 # Map the variable from the job for the first slice
 - job: B
